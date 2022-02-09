@@ -122,7 +122,6 @@ def depthFirstSearch(problem):
             q.push(newPair)
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
 
     #breadth first search is the same thing but uses queue instead of stack
     startNode = problem.getStartState()
@@ -161,7 +160,6 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-       #breadth first search is the same thing but uses queue instead of stack
     startNode = problem.getStartState()
 
     #check if starting node is goal node, if it is return empty list
@@ -171,15 +169,15 @@ def uniformCostSearch(problem):
     q = util.Queue()
     visited = []
 
-    #Pair consists of the node itself and the path it took to the node
-    pathToNode = (startNode, [])
+    #Pair consists of the node itself and the path it took to the node,  and its  cost
+    pathToNode = (startNode, [], 0)
 
-    q.push(pathToNode)
+    q.push(pathToNode, 0)
     while not q.isEmpty():
         pathToNode = q.pop()
-        node = pathToNode[0]
-        path = pathToNode[1]
-
+        node = pathToNode[0][0]
+        path = pathToNode[0][1]
+        cost = pathToNode[1]
         if(problem.isGoalState(node)):
             return path
         #if already visited, then continue, else add node to visited
@@ -189,12 +187,17 @@ def uniformCostSearch(problem):
             visited.append(node)
 
         #For each sucessor nodes, add direction it took to get to and the parameter as well
+        #x is the node add
+        #y is the path
+        #z is the cost
         for x, y, z in problem.getSuccessors(node):
             #create new path
             newPath = path + [y]
+            #cost to get there
+            val = cost + z
             #pair path and node together into the q
-            newPair = (x, newPath)
-            q.push(newPair)
+            newPair = (x, newPath,val)
+            q.push(newPair, val)
 
 def nullHeuristic(state, problem=None):
     """
@@ -202,29 +205,38 @@ def nullHeuristic(state, problem=None):
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
 
-
     return 0
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
+
+    #Heuristic take the manhattan distance?
     startingNode = problem.getStartState()
-    fringe = util.PriorityQueue()
+    q = util.PriorityQueue()
     visited = []
     directions = []
     #get the heuristic from the starting node to the problem
-    fringe.push((startingNode, directions), heuristic(startingNode, problem))
-    while not fringe.isEmpty():
-        node, directions = fringe.pop()
+    q.push((startingNode, directions), heuristic(startingNode, problem))
+
+    while not q.isEmpty():
+        pathToNode = q.pop()
+        node = pathToNode[0][0]
+        path = pathToNode[0][1]
+        h_cost = pathToNode[1]
+
         if not node in visited:
             visited.append(node)
+
             if(problem.isGoalState(node)):
                 return directions
-            for succ in problem.getSuccessors(node):
-                coord, dir, cost = succ
-                nextAct = directions + [dir]
-                fringe.push((coord, nextAct), problem.getCostOfActions(nextAct) + heuristic(coord, problem))
-    return []
+
+            for new_node, dir, cost in problem.getSuccessors(node):
+                #path
+                new_path = path + [dir]
+                #cost
+                g_cost = h_cost + cost
+                #input into the queue by the lowest heuristic cost + g cost
+                q.push((new_node, new_path), heuristic(new_node, problem) + g_cost)
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch

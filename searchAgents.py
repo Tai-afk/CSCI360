@@ -40,6 +40,7 @@ from game import Actions
 import util
 import time
 import search
+from superFoodSearch import SuperFoodSearchProblem, superFoodHeuristic
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -302,8 +303,7 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-
-        util.raiseNotDefined()
+        return len(state[1]) == 4
 
     def getSuccessors(self, state):
         """
@@ -315,17 +315,23 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
+        currentPosition, foundCorners = state[0], state[1]
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+            x,y = currentPosition
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            if not hitsWall:
+                if (nextx, nexty) in self.corners and (nextx, nexty) not in foundCorners:
+                    visited = foundCorners + [(nextx, nexty)]
+                    successors.append((((nextx,nexty), visited), action, 1))
+                else:
+                    successors.append((((nextx,nexty), foundCorners), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -361,8 +367,23 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
+    visited = state[1]
+    toBeExplored = []
+    currNode = state[0]
+    heuristic = 0
 
-    return 0 # Default to trivial solution
+    #If there is a corner that has not been visited, then add it to the toBeExplored list
+    for corner in corners:
+        if not corner in visited:
+            toBeExplored.append(corner)
+
+    #calculate the minimum distnace from current node to all the corners
+    while toBeExplored:
+        d, corner = min([(util.manhattanDistance(currNode, corner), corner) for corner in toBeExplored])
+        heuristic += d
+        currNode = corner
+        toBeExplored.remove(corner)
+    return heuristic # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -437,3 +458,9 @@ def mazeDistance(point1, point2, gameState):
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
     prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False, visualize=False)
     return len(search.bfs(prob))
+
+
+    class AStarSuperFoodAgent(SearchAgent):
+        def __init__(self):
+            self.searchFunction = lambda prob: search.aStarSearch(prob, superFoodHeuristic)
+            self.searchType = SuperFoodSearchProblem

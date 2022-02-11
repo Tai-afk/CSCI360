@@ -166,7 +166,7 @@ def uniformCostSearch(problem):
     if(problem.isGoalState(startNode)):
         return []
 
-    q = util.Queue()
+    q = util.PriorityQueue()
     visited = []
 
     #Pair consists of the node itself and the path it took to the node,  and its  cost
@@ -194,10 +194,9 @@ def uniformCostSearch(problem):
             #create new path
             newPath = path + [y]
             #cost to get there
-            val = cost + z
+            newVal = problem.getCostOfActions(newPath)
             #pair path and node together into the q
-            newPair = (x, newPath,val)
-            q.push(newPair, val)
+            q.push((x, newPath), newVal)
 
 def nullHeuristic(state, problem=None):
     """
@@ -215,7 +214,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     q = util.PriorityQueue()
     visited = []
     #get the heuristic from the starting node to the problem
-    q.push((startingNode, directions), heuristic(startingNode, problem))
+    q.push((startingNode, []), heuristic(startingNode, problem))
 
     while not q.isEmpty():
         pathToNode = q.pop()
@@ -234,7 +233,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 new_path = path + [dir]
                 #cost
                 g_cost = problem.getCostOfActions(new_path)
-                h_cost = heuristic(new_node, problem) + h_cost
+                h_cost = heuristic(new_node, problem) + g_cost
                 #input into the queue by the lowest heuristic cost + g cost
                 q.push((new_node, new_path), h_cost)
 # Abbreviations

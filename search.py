@@ -214,7 +214,6 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     startingNode = problem.getStartState()
     q = util.PriorityQueue()
     visited = []
-    directions = []
     #get the heuristic from the starting node to the problem
     q.push((startingNode, directions), heuristic(startingNode, problem))
 
@@ -228,15 +227,16 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             visited.append(node)
 
             if(problem.isGoalState(node)):
-                return directions
+                return path
 
             for new_node, dir, cost in problem.getSuccessors(node):
                 #path
                 new_path = path + [dir]
                 #cost
-                g_cost = h_cost + cost
+                g_cost = problem.getCostOfActions(new_path)
+                h_cost = heuristic(new_node, problem) + h_cost
                 #input into the queue by the lowest heuristic cost + g cost
-                q.push((new_node, new_path), heuristic(new_node, problem) + g_cost)
+                q.push((new_node, new_path), h_cost)
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
